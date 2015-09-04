@@ -1,0 +1,256 @@
+с MSDN сайта:
+
+
+using System;
+using System.Data;
+using System.Windows.Forms;
+using System.Drawing;
+
+// This example shows how to create your own column style that
+// hosts a control, in this case, a DateTimePicker.
+public class DataGridTimePickerColumn : DataGridColumnStyle 
+{
+    private DateTimePicker myDateTimePicker = new DateTimePicker();
+    // The isEditing field tracks whether or not the user is
+    // editing data with the hosted control.
+    private bool isEditing;
+
+    public DataGridTimePickerColumn() : base() 
+    {
+        myDateTimePicker.Visible = false;
+    }
+
+    protected override void Abort(int rowNum)
+    {
+        isEditing = false;
+        myDateTimePicker.ValueChanged -= new EventHandler(TimePickerValueChanged);
+        Invalidate();
+    }
+
+    protected override bool Commit
+        (CurrencyManager dataSource, int rowNum) 
+    {
+        myDateTimePicker.Bounds = Rectangle.Empty;
+         
+        myDateTimePicker.ValueChanged -= new EventHandler(TimePickerValueChanged);
+
+        if (!isEditing)
+            return true;
+
+        isEditing = false;
+
+        try 
+        {
+            DateTime value = myDateTimePicker.Value;
+            SetColumnValueAtRow(dataSource, rowNum, value);
+        } 
+        catch (Exception) 
+        {
+            Abort(rowNum);
+            return false;
+        }
+
+        Invalidate();
+        return true;
+    }
+
+    protected override void Edit(CurrencyManager source, int rowNum, Rectangle bounds, bool readOnly, string instantText, bool cellIsVisible)
+    {
+        DateTime value = (DateTime) 
+            GetColumnValueAtRow(source, rowNum);
+        if (cellIsVisible) 
+        {
+            myDateTimePicker.Bounds = new Rectangle(bounds.X + 2, bounds.Y + 2, bounds.Width - 4, bounds.Height - 4);
+            myDateTimePicker.Value = value;
+            myDateTimePicker.Visible = true;
+            myDateTimePicker.ValueChanged += new EventHandler(TimePickerValueChanged);
+        } 
+        else 
+        {
+            myDateTimePicker.Value = value;
+            myDateTimePicker.Visible = false;
+        }
+
+        if (myDateTimePicker.Visible)
+            DataGridTableStyle.DataGrid.Invalidate(bounds);
+    }
+
+    protected override Size GetPreferredSize(
+        Graphics g, 
+        object value) 
+    {
+        return new Size(100, myDateTimePicker.PreferredHeight + 4);
+    }
+
+    protected override int GetMinimumHeight() 
+    {
+        return myDateTimePicker.PreferredHeight + 4;
+    }
+
+    protected override int GetPreferredHeight(Graphics g, 
+        object value) 
+    {
+        return myDateTimePicker.PreferredHeight + 4;
+    }
+
+    protected override void Paint(Graphics g, 
+        Rectangle bounds, 
+        CurrencyManager source, 
+        int rowNum) 
+    {
+        Paint(g, bounds, source, rowNum, false);
+    }
+    protected override void Paint(
+        Graphics g, 
+        Rectangle bounds,
+        CurrencyManager source, 
+        int rowNum,
+        bool alignToRight) 
+    {
+        Paint(
+            g,bounds, 
+            source, 
+            rowNum, 
+            Brushes.Red, 
+            Brushes.Blue, 
+            alignToRight);
+    }
+    protected override void Paint(
+        Graphics g, 
+        Rectangle bounds,
+        CurrencyManager source, 
+        int rowNum,
+        Brush backBrush, 
+        Brush foreBrush,
+        bool alignToRight) 
+    {
+        DateTime date = (DateTime) 
+            GetColumnValueAtRow(source, rowNum);
+        Rectangle rect = bounds;
+        g.FillRectangle(backBrush,rect);
+        rect.Offset(0, 2);
+        rect.Height -= 2;
+        g.DrawString(date.ToString("d"), 
+            this.DataGridTableStyle.DataGrid.Font, 
+            foreBrush, rect);
+    }
+
+    protected override void SetDataGridInColumn(DataGrid value) 
+    {
+        base.SetDataGridInColumn(value);
+        if (myDateTimePicker.Parent != null) 
+        {
+            myDateTimePicker.Parent.Controls.Remove 
+                (myDateTimePicker);
+        }
+        if (value != null) 
+        {
+            value.Controls.Add(myDateTimePicker);
+        }
+    }
+
+    private void TimePickerValueChanged(object sender, EventArgs e) 
+    {
+        this.isEditing = true;
+        base.ColumnStartedEditing(myDateTimePicker);
+    }
+}
+namespace DataGridColumnStyleExample 
+{
+    using System;
+    using System.Data;
+    using System.Windows.Forms;
+    using System.Drawing;
+    using System.ComponentModel;
+
+
+    public class MyForm : Form 
+    {
+        private DataTable namesDataTable;
+        private DataGrid grid = new DataGrid();
+        public MyForm() : base() 
+        {
+            InitForm();
+
+            namesDataTable = new DataTable("NamesTable");
+            namesDataTable.Columns.Add(new DataColumn("Name"));
+            DataColumn dateColumn = new DataColumn 
+                ("Date", typeof(DateTime));
+            namesDataTable.Columns.Add(dateColumn);
+            DataSet namesDataSet = new DataSet();
+            namesDataSet.Tables.Add(namesDataTable);
+            grid.DataSource = namesDataSet;
+            grid.DataMember = "NamesTable";
+            AddGridStyle();
+            AddData();
+        }
+
+        private void AddGridStyle()
+        {
+            DataGridTableStyle myGridStyle = new DataGridTableStyle();
+            myGridStyle.MappingName = "NamesTable";
+
+            DataGridTextBoxColumn nameColumnStyle = 
+                new DataGridTextBoxColumn();
+            nameColumnStyle.MappingName = "Name";
+            nameColumnStyle.HeaderText= "Name";
+            myGridStyle.GridColumnStyles.Add(nameColumnStyle);
+
+            DataGridTimePickerColumn timePickerColumnStyle = 
+                new DataGridTimePickerColumn();
+            timePickerColumnStyle.MappingName = "Date";
+            timePickerColumnStyle.HeaderText = "Date";
+            timePickerColumnStyle.Width = 100;
+            myGridStyle.GridColumnStyles.Add(timePickerColumnStyle);
+
+            grid.TableStyles.Add(myGridStyle);
+        }
+
+        private void AddData() 
+        {
+        
+            DataRow dRow = namesDataTable.NewRow();
+            dRow["Name"] = "Name 1";
+            dRow["Date"] = new DateTime(2001, 12, 01);
+            namesDataTable.Rows.Add(dRow);
+
+            dRow = namesDataTable.NewRow();
+            dRow["Name"] = "Name 2";
+            dRow["Date"] = new DateTime(2001, 12, 04);
+            namesDataTable.Rows.Add(dRow);
+
+            dRow = namesDataTable.NewRow();
+            dRow["Name"] = "Name 3";
+            dRow["Date"] = new DateTime(2001, 12, 29);
+            namesDataTable.Rows.Add(dRow);
+
+            dRow = namesDataTable.NewRow();
+            dRow["Name"] = "Name 4";
+            dRow["Date"] = new DateTime(2001, 12, 13);
+            namesDataTable.Rows.Add(dRow);
+
+            dRow = namesDataTable.NewRow();
+            dRow["Name"] = "Name 5";
+            dRow["Date"] = new DateTime(2001, 12, 21);
+            namesDataTable.Rows.Add(dRow);
+
+            namesDataTable.AcceptChanges();
+        }
+
+        private void InitForm() 
+        {
+            this.Size = new Size(500, 500);
+            grid.Size = new Size(350, 250);
+            grid.TabStop = true;
+            grid.TabIndex = 1;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.Controls.Add(grid);
+        }
+        [STAThread]
+        public static void Main() 
+        {
+            MyForm myForm1= new MyForm();
+            myForm1.ShowDialog();
+        }
+    }
+}
