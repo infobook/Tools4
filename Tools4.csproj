@@ -105,9 +105,9 @@
       <HintPath>C:\Program Files\Microsoft.NET\Primary Interop Assemblies\Microsoft.mshtml.dll</HintPath>
       <AssemblyFolderKey>hklm\primary interop assemblies</AssemblyFolderKey>
     </Reference>
-    <Reference Include="NetSpell.SpellChecker, Version=2.1.7.16646, Culture=neutral, PublicKeyToken=318b389f0db66e46">
+    <Reference Include="NetSpell.SpellChecker, Version=2.1.7.17591, Culture=neutral, PublicKeyToken=318b389f0db66e46">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>H:\InfoBook4\NetSpell.SpellChecker.dll</HintPath>
+      <HintPath>.\NetSpell.SpellChecker.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <Name>System</Name>
