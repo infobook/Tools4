@@ -3,9 +3,9 @@ bin/
 obj/
 .svn/
 *.scc
-Tools4.sln
-Tools4.suo
-Tools4.csproj.user
-Tools4.csproj.vspscc
+*.sln
+*.suo
+*.csproj.user
+*.csproj.vspscc
 
 
