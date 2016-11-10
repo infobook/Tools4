@@ -280,7 +280,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="DataGridColumnStyle\DataGridCASSelectFromTVColumn.cs">
-      <SubType>Component</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="DataGridColumnStyle\DataGridCASSparrowColumn.cs">
       <SubType>Component</SubType>
